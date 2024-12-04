@@ -1,0 +1,166 @@
+/* Reset basic styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Font chữ và nền */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7fc;
+}
+
+/* Header và navigation */
+header {
+    background-color: #4caf50; /* Màu xanh lá cây */
+    padding: 15px 0;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+/* Main content */
+main {
+    padding: 30px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Phần băng chuyền */
+.conveyor-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    justify-items: center;
+    width: 100%;
+}
+
+/* Container */
+.container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.container:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tiêu đề */
+h2 {
+    color: #4caf50; /* Màu xanh lá cây */
+    margin-bottom: 20px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    font-size: 16px;
+    color: #333;
+}
+
+th {
+    background-color: #4caf50; /* Màu xanh lá cây */
+    color: white;
+    font-weight: 500;
+}
+
+td {
+    background-color: #f9f9f9;
+}
+
+td span {
+    font-weight: 600;
+    color: #4caf50; /* Màu xanh lá cây */
+}
+
+tr:nth-child(even) td {
+    background-color: #f1f1f1;
+}
+
+/* Hiệu ứng hover cho table */
+table tr:hover {
+    background-color: #e4f0f8;
+}
+
+/* Các ô vuông trạng thái */
+.flex {
+    display: flex;
+    justify-content: center; /* Căn giữa nội dung theo chiều ngang */
+    align-items: center;    /* Căn giữa nội dung theo chiều dọc */
+    gap: 20px;              /* Khoảng cách giữa các ô */
+    margin-top: 20px;       /* Khoảng cách phía trên */
+}
+
+.square-box {
+    width: 60px;           /* Chiều rộng của ô vuông */
+    height: 60px;          /* Chiều cao của ô vuông */
+    display: flex;         /* Sử dụng flexbox để căn giữa nội dung */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center;    /* Căn giữa theo chiều dọc */
+    font-size: 18px;        /* Kích thước chữ */
+    font-weight: bold;      /* Làm chữ đậm */
+    color: #ffffff;         /* Màu chữ trắng */
+    background-color: #28a745; /* Màu nền xanh */
+    border: 2px solid #218838; /* Viền màu đậm hơn */
+    border-radius: 8px;     /* Bo góc ô vuông */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Hiệu ứng đổ bóng */
+    transition: transform 0.3s, box-shadow 0.3s; /* Hiệu ứng hover */
+}
+
+.square-box:hover {
+    transform: scale(1.1); /* Phóng to nhẹ khi hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Tăng độ đổ bóng */
+}
+
+/* Responsive cho thiết bị di động */
+@media (max-width: 768px) {
+    .conveyor-section {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .square-box {
+        width: 50px;       /* Giảm kích thước trên màn hình nhỏ */
+        height: 50px;
+        font-size: 16px;   /* Kích thước chữ nhỏ hơn */
+    }
+}

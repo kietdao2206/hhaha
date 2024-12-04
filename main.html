@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chính</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="control1.html">Điều Khiển Băng Chuyền</a></li>
+                <li><a href="control2.html">Điều Khiển Chung</a></li>
+                <li><a href="statistics.html">Thống kê sản phẩm</a></li>
+                <li><a href="index.html" onclick="logout()">Đăng xuất</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="conveyor-section">
+            <!-- Bảng 1: Băng chuyền 1 -->
+            <div class="container">
+                <h2>Băng chuyền 1</h2>
+                <table>
+                    <tr><th>Trạng Thái</th><td><span id="status1-running">Đang cập nhật...</span></td></tr>
+                    <tr><th>Màu</th><td><span id="status1-color">Đang cập nhật...</span></td></tr>
+                    <tr><th>Vật Đi Qua 1</th><td><span id="status1-passed1">Đang cập nhật...</span></td></tr>
+                    <tr><th>Vật Đi Qua 2</th><td><span id="status1-passed2">Đang cập nhật...</span></td></tr>
+                    <tr><th>Trạng Thái Cánh Tay Robot</th><td><span id="status1-grab">Đang cập nhật...</span></td></tr>
+                </table>
+            </div>
+
+            <!-- Bảng 2: Băng chuyền 2 -->
+            <div class="container">
+                <h2>Băng Chuyền 2</h2>
+                <table>
+                    <tr><th>Trạng Thái</th><td><span id="status2-running">Đang cập nhật...</span></td></tr>
+                    <tr><th>Số Lượng</th><td><span id="status2-counter">Đang cập nhật...</span></td></tr>
+                    <tr><th>Số Gói Hàng</th><td><span id="status2-value">Đang cập nhật...</span></td></tr>
+                </table>
+                <!-- Display counters -->
+                <div class="flex">
+                    <div id="col1" class="square-box">0</div>
+                    <div id="col2" class="square-box">0</div>
+                    <div id="col3" class="square-box">0</div>
+                    <div id="col4" class="square-box">0</div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWXObaYok2OlQa5BcRBhhDpsbc7CFEYrQ",
+            authDomain: "khkt-fb906.firebaseapp.com",
+            databaseURL: "https://khkt-fb906-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "khkt-fb906",
+            storageBucket: "khkt-fb906.appspot.com",
+            messagingSenderId: "843931539573",
+            appId: "1:843931539573:web:0c391975bd7d4ab4dc003c",
+            measurementId: "G-MV6M3DHVW2"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Cập nhật trạng thái Băng chuyền 1
+        function updateStatus1() {
+            const statusRef = ref(db, '/conveyorBelt/status');
+            onValue(statusRef, (snapshot) => {
+                const data = snapshot.val() || {};
+                document.getElementById('status1-running').innerText = data.beltStatus1 || "N/A";
+                document.getElementById('status1-color').innerText = data.color || "N/A";
+                document.getElementById('status1-passed1').innerText = data.ir1 || "N/A";
+                document.getElementById('status1-passed2').innerText = data.ir2 || "N/A";
+                document.getElementById('status1-grab').innerText = data.robotArm || "N/A";
+            });
+        }
+
+        // Cập nhật trạng thái Băng chuyền 2
+        function updateStatus2() {
+            const statusRef = ref(db, '/conveyorBelt/status');
+            onValue(statusRef, (snapshot) => {
+                const data = snapshot.val() || {};
+                document.getElementById('status2-running').innerText = data.beltStatus2 || "N/A";
+                document.getElementById('status2-counter').innerText = data.counter || "N/A";
+                document.getElementById('status2-value').innerText = data.value || "N/A";
+            });
+        }
+
+        // Kiểm tra báo động
+        function listenToAlert() {
+            const alertRef = ref(db, 'alert');
+            onValue(alertRef, (snapshot) => {
+                const alertData = snapshot.val();
+                if (alertData === true) {
+                    console.log("Phát hiện báo cháy! Chuyển trang...");
+                    window.location.href = "alert.html";
+                }
+            });
+        }
+
+        // Cập nhật trạng thái cột
+        function updateColumns(d5, d6, d7, d8) {
+            document.getElementById("col1").textContent = d5 || 0;
+            document.getElementById("col2").textContent = d6 || 0;
+            document.getElementById("col3").textContent = d7 || 0;
+            document.getElementById("col4").textContent = d8 || 0;
+        }
+
+        // Lấy dữ liệu cho cột
+        try {
+            onValue(ref(db, "/conveyorBelt/status"), (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    updateColumns(data.d5 || 0, data.d6 || 0, data.d7 || 0, data.d8 || 0);
+                } else {
+                    console.log("No data available");
+                }
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu từ Firebase:", error);
+        }
+
+        // Khởi chạy cập nhật trạng thái
+        updateStatus1();
+        updateStatus2();
+        listenToAlert();
+    </script>
+</body>
+</html>

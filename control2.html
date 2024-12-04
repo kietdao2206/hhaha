@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điều khiển hệ thống</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="control2.css">
+    
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="main.html">Trang chính</a></li>
+                <li><a href="control1.html">Điều Khiển Băng Chuyền</a></li>
+                <li><a href="statistics.html">Thống kê sản phẩm</a></li>
+                <li><a href="index.html" onclick="logout()">Đăng xuất</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="control-container">
+            <!-- Băng chuyền 1 -->
+            <div class="belt-group">
+                <h2>Băng chuyền 1</h2>
+                <div class="button-group">
+                    <button onclick="controlSystem('red', 1)">Đỏ</button>
+                    <button onclick="controlSystem('green', 1)">Xanh lá</button>
+                    <button onclick="controlSystem('blue', 1)">Xanh dương</button>
+                </div>
+                <div class="button-group">
+                    <button onclick="controlSystem('error', 1)">Lỗi</button>
+                </div>
+                <div class="status-bar" id="status1">
+                    Trạng thái: Chưa điều khiển
+                </div>
+            </div>
+
+            <!-- Băng chuyền 2 đã bị xóa -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWXObaYok2OlQa5BcRBhhDpsbc7CFEYrQ",
+            authDomain: "khkt-fb906.firebaseapp.com",
+            databaseURL: "https://khkt-fb906-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "khkt-fb906",
+            storageBucket: "khkt-fb906.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef123456"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.controlSystem = function(command, beltNumber) {
+            let path;
+            let statusElement;
+
+            if (beltNumber === 1) {
+                path = "belt1/command";
+                statusElement = document.getElementById("status1");
+            }
+
+            if (statusElement) {
+                set(ref(database, path), command)
+                    .then(() => {
+                        console.log(`Lệnh gửi: ${command}`);
+                        statusElement.innerText = `Trạng thái: ${translateStatus(command)}`;
+                        setTimeout(() => {
+                            set(ref(database, path), null);
+                            statusElement.innerText = "Trạng thái: Chưa điều khiển";
+                        }, 1000);
+                    })
+                    .catch(error => console.error("Lỗi khi gửi lệnh:", error));
+            }
+        };
+
+        function translateStatus(status) {
+            switch (status) {
+                case "red":
+                    return "Đỏ";
+                case "blue":
+                    return "Xanh Dương";
+                case "green":
+                    return "Xanh Lá";
+                case "error":
+                    return "Lỗi";
+                default:
+                    return status;
+            }
+        }
+
+        function listenToAlert() {
+            const alertRef = ref(database, 'alert');
+            onValue(alertRef, (snapshot) => {
+                const alertData = snapshot.val();
+                if (alertData === "true") {
+                    console.log("Phát hiện báo cháy! Chuyển trang...");
+                    window.location.href = "alert.html";
+                }
+            });
+        }
+
+        function listenForStatusUpdates() {
+            const statusRefs = {
+                belt1: ref(database, "belt1/status"),
+            };
+
+            onValue(statusRefs.belt1, (snapshot) => {
+                const status = snapshot.val();
+                document.getElementById("status1").innerText = `Trạng thái: ${status || "Chưa điều khiển"}`;
+            });
+        }
+
+        listenForStatusUpdates();
+        listenToAlert();
+    </script>
+</body>
+</html>

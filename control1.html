@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điều khiển băng chuyền</title>
+    <link rel="stylesheet" href="control1.css"> <!-- Nhúng tệp CSS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWXObaYok2OlQa5BcRBhhDpsbc7CFEYrQ",
+            authDomain: "khkt-fb906.firebaseapp.com",
+            databaseURL: "https://khkt-fb906-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "khkt-fb906",
+            storageBucket: "khkt-fb906.firebasestorage.app",
+            messagingSenderId: "843931539573",
+            appId: "1:843931539573:web:0c391975bd7d4ab4dc003c",
+            measurementId: "G-MV6M3DHVW2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let isSending = false;
+        let lastCommand = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const video = document.createElement('video');
+            document.body.appendChild(video);
+            video.width = 640;
+            video.height = 480;
+
+            function controlBelt(command) {
+                if (isSending) return console.warn("Đang gửi lệnh. Vui lòng đợi...");
+                if (command === lastCommand) return console.log("Lệnh trùng lặp, bỏ qua...");
+
+                isSending = true;
+                const commandRef = ref(db, 'conveyorBelt/commands');
+                set(commandRef, { command })
+                    .then(() => {
+                        console.log('Lệnh đã gửi:', command);
+                        lastCommand = command;
+                        updateStatus(command);
+                        setTimeout(() => remove(commandRef), 2000);
+                    })
+                    .catch(err => console.error('Lỗi gửi lệnh:', err))
+                    .finally(() => isSending = false);
+            }
+
+            function updateStatus(command) {
+                const status1 = document.getElementById('beltStatus1');
+                if (command === 'start1') status1.textContent = 'Đang hoạt động';
+                else if (command === 'stop1') status1.textContent = 'Đã dừng lại';
+            }
+
+            function listenToCommands() {
+                const commandRef = ref(db, 'conveyorBelt/commands');
+                onValue(commandRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data?.command && data.command !== lastCommand) {
+                        updateStatus(data.command);
+                    }
+                });
+            }
+
+            function listenToAlert() {
+                const alertRef = ref(db, 'alert');
+                onValue(alertRef, (snapshot) => {
+                    const alertData = snapshot.val();
+                    if (alertData === "true") {
+                        console.log("Phát hiện báo cháy! Chuyển trang...");
+                        window.location.href = "alert.html";
+                    }
+                });
+            }
+
+            async function setupHandTracking() {
+                const Hands = window.Hands;
+                const hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                });
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                hands.onResults(onResults);
+
+                function onResults(results) {
+                    if (results.multiHandLandmarks?.length) {
+                        const wristY = results.multiHandLandmarks[0][0].y;
+                        if (wristY < 0.3) controlBelt('start1');
+                        else if (wristY > 0.7) controlBelt('stop1');
+                    }
+                }
+
+                function detectHand() {
+                    if (video.readyState >= 2) hands.send({ image: video });
+                    requestAnimationFrame(detectHand);
+                }
+
+                detectHand();
+            }
+
+            function startVideo() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.play();
+                        setupHandTracking();
+                    })
+                    .catch(err => console.error("Lỗi truy cập camera:", err));
+            }
+
+            listenToCommands();
+            listenToAlert(); // Bắt đầu theo dõi trạng thái báo cháy
+            startVideo();
+            window.controlBelt = controlBelt;
+        });
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="main.html">Trang chính</a></li>
+                <li><a href="control2.html">Điều Khiển Chung</a></li>
+                <li><a href="statistics.html">Thống kê sản phẩm</a></li>
+                <li><a href="index.html" onclick="logout()">Đăng xuất</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="control-container">
+            <div class="belt-control">
+                <h1>Băng chuyền 1</h1>
+                <div class="button-group">
+                    <button onclick="controlBelt('start1')">Bắt đầu</button>
+                    <button onclick="controlBelt('stop1')">Dừng lại</button>
+                </div>
+                <div class="status-container">
+                    <h2>Trạng thái:</h2>
+                    <p id="beltStatus1">Chưa được điều khiển</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
